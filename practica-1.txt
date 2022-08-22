@@ -1,0 +1,180 @@
+1- Las palabras que estan precedidas de un punto (.) son las directivas. Por ej.: .data, .byte, .text, .globl.
+   Las palabras que están al principio y estan sucedidas por dos puntos (:) son las etiquetas. Por ej.: "dato:", "main:".
+   Las lineas que tienen un caracter numeral (#) son los comentarios. Por ej.: "#inicializo una posición de memoria a 3", "# debe ser global"
+
+2- 
+          .data
+vector_A: .space 80
+vector_B: .space 80
+
+3- 
+          .data 0x10001000
+palabra1: .space 4
+byte1:    .space 1
+          .align 2
+palabra2: .space 4
+
+4-
+          .data
+palabra1: .word 3
+byte1:    .byte 0x10
+          .align 2
+          .space 4
+byte2:    .byte 20
+
+5-
+
+          .data
+en_ascii: .ascii "Esto es un problema"
+en_word:  .word 69, 115, 116, 111, 32, 101, 115, 32, 117, 110, 32, 112, 114, 111, 98, 108, 101, 109, 97
+en_byte:  .byte 69, 115, 116, 111, 32, 101, 115, 32, 117, 110, 32, 112, 114, 111, 98, 108, 101, 109, 97
+
+6-
+
+            .data
+matriz_fil: .byte 1, 2, 3, 4, 5, 6, 7, 8, 9
+            .align 2
+matriz_col: .byte 1, 4, 7, 2, 5, 8, 3, 6, 9
+
+7-
+
+          .data 0x10000000
+vector_V: .word 10, 20, 25, 500, 3
+          .text
+main:
+	la $t0, 0x10000000
+	
+	lw $s0, 0($t0)
+	lw $s1, 4($t0)
+	lw $s2, 8($t0)
+	lw $s3, 12($t0)
+	lw $s4, 16($t0)
+
+8- 
+
+          .data 0x10010000
+vector_V: .word 10, 20, 25, 500, 3
+          .text
+main:
+	la $t0, 0x10010000
+	
+	lw $s0, 0($t0)
+	lw $s1, 4($t0)
+	lw $s2, 8($t0)
+	lw $s3, 12($t0)
+	lw $s4, 16($t0)
+
+9-
+
+.data
+palabra1: .word 0x10203040
+pal_res:  .space 4
+.text
+main:
+	la $t0, palabra1
+	la $t1, pal_res
+
+	lb $s0, 3($t0)
+	sb $s0, 0($t1)
+	lb $s0, 2($t0)
+	sb $s0, 1($t1)
+	lb $s0, 1($t0)
+	sb $s0, 2($t1)
+	lb $s0, 0($t0)
+	sb $s0, 3($t1)
+
+10-
+
+          .data
+palabra1: .word 0x10203040
+          .text
+main:
+	la $t0, palabra1
+
+	lh $s0, 0($t0)
+	lh $s1, 2($t0)
+	sh $s1, 0($t0)
+	sh $s0, 2($t0)
+ 
+11-
+
+.data 0x10010002
+bytes:  .byte 0x10, 0x20, 0x30, 0x40
+.data 0x10010102
+bytes2: .space 4
+.text
+main:
+
+	la $t0, bytes
+	la $t1, bytes2
+	
+	lb $s0, 0($t0)
+	sb $s0, 0($t1)
+	lb $s0, 1($t0)
+	sb $s0, 1($t1)
+	lb $s0, 2($t0)
+	sb $s0, 2($t1)
+	lb $s0, 3($t0)
+	sb $s0, 3($t1)
+
+12-
+
+.data 0x10000000
+vector: .word 10, 20
+.text
+main:
+	
+	la $s0, vector 
+	lw $t0, 0($s0)
+	lw $t1, 4($s0)
+	add $t2, $t0, $t1
+	sw $t2, 8($s0)
+
+13-
+
+.data 0x10000000
+entero1: .word 18
+entero2: .word -1215
+.text
+main:
+	
+	la $s0, 0x10010000
+	addi $t0, $0, 5
+	la $s1, entero1($0)
+	lw $t1, 0($s1)
+	div $t1, $t1, $t0
+	sw $t1, 8($s1)
+	la $s2, entero2($0)
+	lw $t2, 0($s2)
+	div $t2, $t2, $t0
+	sw $t2, 8($s2)
+
+14-
+
+.data 0x10000000
+entero: 0xabcd12bd
+.text
+main:
+
+	lw $s0, entero($0)
+	andi $s1, $s0, 0xdebfffff 
+
+15-
+
+.data 0x10000000
+entero: 0xff0f1235
+.text
+main:
+
+	lw $s0, entero($0)
+	xor $s1, $s0, 0x22800000
+
+16-
+
+.data
+numero: .word 0x1237
+.text
+main:
+
+	lw $s0, num($0)
+	sll $s0, $s0, 5
