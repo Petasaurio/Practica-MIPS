@@ -1,0 +1,485 @@
+1)
+1.1-
+	El valor que se guarda en la posición de memoria "res" es 1.
+1.2-
+	El valor que se guarda en la posición de memoria "res" es 0.
+1.3-
+	Las etiquetas no se comparan entre si. Los valores son cargados en los registros y se
+pregunta si el valor de "dato1" es menor que el de "dato2".
+
+1.4-
+	Para ello hace falta cambiar la línea del "slt" por:
+		seq $t2,$t0, $t1 # poner a 1 $t2 si $t0=$t1
+1.5-
+	Para realizar la operación "res(1) <- $t0=$t1" utilizando "sge" hay que modificar un
+poco el programa. La idea es preguntar si $t0 es mayor o igual que $t1 y si $t1 es mayor o 
+igual que $t0, siendo el unico caso donde ambas se cumplen a la vez el caso donde son iguales,
+por lo que solo queda cargar en un registro $t4 el resultado de las dos operaciones previas y
+guardar el valor de $t4 en "res". El codigo modificado resulta:
+		sge $t2, $t0, $t1 # poner a 1 $t2 si $t0>=$t1
+		sge $t3, $t1, $t0 # poner a 1 $t2 si $t1>=$t0
+		and $t4, $t2, $t3 # and logico entre $t2 y $t3
+		sb $t4,res($0) # almacenar $t2 en res
+1.6-
+	El valor que se carga en "res" es 1.
+1.7-
+	El valor que se carga en "res" es 0.
+1.8-
+	El valor que se carga en "res" es 1.
+1.9-  
+	Las etiquetas no se comparan entre si. Los valores son cargados en los registros y se
+pregunta si el valor de "dato1" es menor que el de "dato2". Sin embargo, como en caso de ser 
+iguales también se carga un 1 en $t2, de alguna manera se pregunta si el valor de "dato1" es 
+menor o igual que "dato2".
+
+1.10-
+	 De por si "bne" es una pseudoinstrucción, pero bueno. Si resolvemos el ejercicio con
+la pseudoinstrucción "sle" no necesitamos usar el salto condicional ni la asignación del ori.
+El codigo final del ".text" resulta:
+	main: 	lw $t0,dato1($0) # cargar dato1 en $t0
+		lw $t1, dato2($0) # cargar dato2 en $t1
+		sle $t2, $t0, $t1 # poner a 1 $t2 si $t0<=$t1
+	fineval: 
+		sb $t2,res($0) # almacenar $t2 en res
+1.11-
+	Al no poder usar pseudoinstrucciones volvemos a utilizar el salto. La comparación la 
+resolvemos invirtiendo los valores del "slt". El codigo del ".text" resulta:
+	main: 	lw $t0,dato1($0) # cargar dato1 en $t0
+		lw $t1, dato2($0) # cargar dato2 en $t1
+		slt $t2, $t1, $t0 # poner a 1 $t2 si $t1<$t0
+		bne $t0,$t1,fineval # si $t0<>$t1 salta a fineval
+		ori $t2,$0,1 # poner a 1 $t3 si $t0=$t1
+	fineval: 
+		sb $t2,res($0) # almacenar $t2 en res
+1.12-
+	Una vez más, al usar la pseudoinstrucción podemos prescindir del salto condicional. En
+este caso la pseudoinstrucción usada es "sge". El código del ".text" queda como:
+	main: 	lw $t0,dato1($0) # cargar dato1 en $t0
+		lw $t1, dato2($0) # cargar dato2 en $t1
+		sge $t2, $t0, $t1 # poner a 1 $t2 si $t0>=$t1
+	fineval: 
+		sb $t2,res($0) # almacenar $t2 en res
+1.13-
+	El valor que se carga en "res" es 1.
+1.14-
+	El valor que se carga en "res" es 0.
+1.15-
+	El valor que se carga en "res" es 0.
+1.16-
+	El valor que se carga en "res" es 0.
+1.17-
+	El programa compara a ambos valores contra 0. Si ninguno de los dos es 0, el valor almacenado
+en "res" va a ser 1. En caso de que cualquiera de los valores sea 0, "res" va a valer 0. La expresión
+de la comparación es "res(1) <- ((dato1<>0)and(dato2<>0))".
+1.18-
+	Para que el programa realice la comparación "res(1)<-((dato1<>0)and(dato1<>dato2))" debemos 
+cambiar la primera línea de "igual". La línea en cuestión resaltada dentro de ".text":
+	main: 	lw $t8,dato1($0)
+		lw $t9,dato2($0)
+		and $t0,$t0,$0
+		and $t1,$t1,$0
+		beq $t8,$0,igual
+		ori $t0,$0,1
+	igual: 	beq $t9,$t8,fineval # <-------
+		ori $t1,$0,1
+	fineval:
+		and $t0,$t0,$t1
+		sb $t0,res($0)
+1.19-
+	El valor que se carga en "res" es 1.
+1.20-
+	El valor que se carga en "res" es 0.
+1.21-
+	El valor que se carga en "res" es 0.
+1.22-
+	La comparación compuesta que se realiza tiene la forma "res(1)<-((dato1<>0)and(dato2<dato1))".
+Tanto si "dato1" es 0 como si "dato2" no es menor que "dato1" el valor de "res" terminará en 0.
+1.23-
+	Para efectuar la comparación "res(1)<-((dato1<>dato2)and(dato1<=dato2))" debemos cambiar la línea
+del salto condicional para que compare $t8 contra $t9 en vez de $t0. Además se debe agregar un nuevo salto
+que dependa de si $t8 es maayor que $t9. Si la condición no su cumpliera cargaría un 1 en $t1. Caso contrario
+la asignación no se cumpliría. El código modificado con las líneas alteradas resaltadas es:
+	main: 	lw $t8,dato1($0)
+		lw $t9,dato2($0)
+		and $t1,$t1,$0
+		and $t0,$t0,$0
+		beq $t8,$t9,igual   # <--------
+		ori $t0,$0,1	
+	igual: 	bgt $t1,$t8,fineval # <--------
+		ori $t1,$t1,1	    # <--------
+	fineval: 
+		and $t0,$t0,$t1
+		sb $t0,res($0)
+1.24-
+	Para utilizar la pseudoinstrucción "sle" hay que reemplazar el segundo salto en "igual" y la asignación del segundo 
+"ori" por la línea "sle $t1,$t8,$t9".
+1.25-
+	El valor que se carga en "res" es 0.
+1.26-
+	El valor que se carga en "res" es 1.
+1.27-
+	El valor que se carga en "res" es 1.
+1.28-
+	El valor que se carga en "res" es 0.
+1.29-
+	La comparación compuesta que se realiza tiene la forma "res(1)<-((dato1<dato2)or(dato2=0))".
+1.30-
+	Para satisfacer la comparación propuesta "res(1)<-((dato1<=dato2)or(dato1<=0))" se debe reescribir el programa 
+con dos saltos condicionales. El primero compara con la pseudoinstrucción "bgt" a $t8 contra $t9, ya que "dato1>dato2"
+es la condición de salida de la rama. En caso de que no se realice el salto, se guarda un 1 en $t0. En caso de que si, 
+lleva hacia la etiqueta "mayor". Dentro de esta etiqueta se realiza una nueva comparación, esta vez con la instrucción
+"bgtz" (mayor estricto a 0) ya que, de nuevo, esta es la condición de salida de la rama. Si no se salta hacia "fineval" 
+se guarda un 1 en $t1. Finalmente se comparan mediante un "or" ambos valores. El código final dentro de ".text" resulta:
+	main: 	lw $t8,dato1($0)
+		lw $t9,dato2($0)
+		and $t0,$t0,$0
+		and $t1,$t1,$0
+		bgt $t9,$t8,mayor
+		ori $t0,$0,1
+	mayor:	bgtz $t8,fineval
+		ori $t1,$0,1
+	fineval: 
+		or $t0,$t0,$t1
+		sb $t0,res($0)
+1.31-
+	Si se utiliza la pseudoinstrucción "sle", el programa no necesita saltos. Se pueden reescribir ambos saltos condicionales
+con sus respectivas asignaciones como "sle $t0, $t8, $t9" y "sle $t1, $t8, $0". El código final sería:
+	main: 	lw $t8,dato1($0)
+		lw $t9,dato2($0)
+		and $t0,$t0,$0
+		and $t1,$t1,$0
+		sle $t0, $t8, $t9 # <---------
+		sle $t1, $t8, $0 3 <---------
+		or $t0,$t0,$t1
+		sb $t0,res($0)
+--------------------------------------------------PROBLEMAS PROPUESTOS----------------------------------------------------------
+1) 
+	.data
+V: 	.word 0,1,1,1,0
+res: 	.space 12
+	.text
+main: 	la $t0,V
+	la $t1,res
+	lw $s1,0($t0)
+	lw $s2,4($t0)
+	lw $s3,8($t0)
+	lw $s4,12($t0)
+	lw $s5,16($t0)
+	and $t0,$s1,$s5
+	sw $t0,0($t1)
+	or $t0,$s2,$s4
+	sw $t0,4($t1)
+	or $t0,$s1,$s2
+	and $t0,$t0,$s3
+	sw $t0,8($t1)
+#----
+2)
+	.data
+V: 	.word 2,-4,6
+res: 	.space 12
+	.text
+main: 	la $t0,V
+	la $t1,res
+	and $t2,$t2,$0
+bucle:	lw $s0,($t0)
+	sge $s1,$s0,$0
+	sw $s1,($t1)
+	addi $t0,$t0,4
+	addi $t1,$t1,4
+	addi $t2,$t2,1
+	slti $k0,$t2,3
+	bne $k0,$0,bucle
+#----
+3)
+	.data
+V: 	.word 1,-4,-5,2
+res: 	.space 4
+	.text
+main: 	la $t0,V
+	la $t1,res
+	and $t2,$t2,$0
+	ori $s2,$0,1
+bucle:	lw $s0,($t0)
+	slt $s1,$s0,$0
+	and $s2,$s2,$s1
+	addi $t0,$t0,4
+	addi $t2,$t2,1
+	slti $k0,$t2,3
+	bne $k0,$0,bucle
+	sw $s2,res
+
+----------------------------------------------------------------------------------------------------------------------
+2)
+2.1-
+	La instrucción que evalúa la condición y hace el control de flujo es "beq". En este caso la instrucción tiene la forma
+"beq $t1, $0, finsi" donde salta en caso de que el contenido de $t1 sea 0. En el caso de la instrucción del pseudocódigo de
+más alto nivel, la instrucción pregunta "($t1 != 0)", por lo que podemos intuir que la forma de la expresión en el ensamblador
+siempre va a ser contraria a la forma de la expresión de alto nivel.
+2.2-
+	Al ser la etiqueta "entonces" prescindible en este caso, se puede considerar que la estructura de un "if-then" donde
+		
+	if (condición) then {
+		instrucciones;
+		.;
+		.;
+	} salida;
+
+se puede escribir en el ensamblador de la manera:
+	
+	si:	b-- $x, $y, salida	# evaluación inversa la condición.
+		# instrucciones 
+		# .
+		# .
+	salida:
+		# continuación del programa
+
+teniendo una estructura donde lo que está dentro de la etiqueta "si" o "entonces" se ejecuta en caso de no efectuarse el salto.
+2.3-
+	Se almacena el valor hexadecimal 47 (71 en sistema decimal).
+2.4-
+	Si se declara "dato2" como 0, el programa efectuará el salto, omitiendo el código dentro del "entonces", por lo que el valor
+de "res" terminará siendo 40 ("dato1"+"dato2").
+2.5-
+	El programa en cuestión es muy similar al del ejercicio previo, solo cambia la instrucción "beq" por "ble".
+
+		.data
+dato1:	.word 40
+dato2: 	.word 30
+res: 	.space 4
+		.text
+main: 	lw $t0,dato1($0) #cargar dato1 en $t0
+		lw $t1,dato2($0) #cargar dato2 en $t1
+		and $t2,$t2,$0 #$t2=0
+Si: 		ble $t1,$0,finsi #si $t1 = 0 finsi
+		div $t0,$t1 #t0/$t1
+		mflo $t2 #almacenar LO en $t2
+finsi: 	add $t3,$t0,$t1 #$t3=$t0+$t1
+		add $t2,$t3,$t2 #$t2=$t3+$t2
+		sw $t2,res($0) #almacenar en r	es $t2
+2.6-
+	VARIABLES
+		ENTERO:	dato1=40; dato2=30; res;
+	
+	INICIO
+		Si ((dato1!=0)and(dato2!=0)) res = dato1/dato2;
+		
+		res = res + dato1 + dato2;
+	FIN
+2.7-
+	La instrucción que controla el salto condicional es "beq" y está utilizada dos veces en el programa. En ambas ocasiones 
+compara a los valores de "dato1" y "dato2" contra 0. Es por ello que en la implementación en pseudocódigo está representado por
+la expresión "((dato1!=0)and(dato2!=0))". Como tiene que pasar por ambas condiciones sin saltar, se implementa como una puerta and.
+2.8-
+	Al igual que en el caso anterior, las estructuras que conforman el "if-then" son las instrucciones "beq", que están dentro de 
+la etiqueta "Si". Así también forman parte del "if-then" la etiqueta "entonces" y la estiqueta de salida del salto "finsi".
+2.9-
+	El valor que almacena en "res" es 71 ((40/30)+40+30).
+2.10-
+	El valor que se guarda en "res" es el valor de "dato2". Inversamente, si "dato2" vale 0, el valor que se guarda en res es el de
+"dato1".
+2.11-
+		.data
+dato1: 	.word 40
+dato2: 	.word 30
+res: 	.space 4
+		.text
+main: 	lw $t0,dato1($0) #cargar dato1 en t0
+		lw $t1,dato2($0) #cargar dato2 en $t1
+		and $t2,$t2,$0 #pone a 0 $t2
+Si: 		ble $t1,$0,finsi #si $t1<=0 saltar finsi
+		blt $t0,$0,finsi #si $t0<0 saltar finsi
+entonces: 
+		div $t0,$t1 #t0/$t1
+		mflo $t2 #almacenar LO en t2
+finsi: 	add $t3,$t0,$t1 #t3=t0+$t1
+		add $t2,$t3,$t2 #$t2=t3+$t2
+		sw $t2,res($0) #almacenar en res $t2
+
+2.12-
+	VARIABLES
+		ENTERO:	dato1=40; dato2=30; res;
+	
+	INICIO
+		Si (dato1<dato2) entonces
+			res = dato1;
+		Sino
+			res = dato2;
+		Finsi
+	FIN
+2.13-
+	Se almacena un 30 en "res". Si "dato1" vale 35 también se almacena un 30 en "res".
+2.14-
+2.15-
+		.data
+dato1: 	.word 50
+dato2: 	.word 40
+res: 	.space 4
+		.text
+main: 	lw $t0,dato1($0) #cargar dato1 en $t0
+		lw $t1,dato2($0) #cargar dato2 en $t1
+		and $t2,$t2,$0 #cargo $t2 = 0
+Si: 		blt $t0,$t1, sino #si $t0<$t1 ir a sino
+entonces: 
+		sub $t2,$t0,$t1 #hago $t2 = dato1 - dato2
+		j finsi #ir a finsi
+sino: 	sub $t2,$t1,$t0 #hago $t2 = dato2 - dato1
+finsi:	sw $t2,res($0) #guardo el resultado en res
+	
+2.16-
+	VARIABLES
+		ENTERO:	dato1=40; dato2=30; dato3=-1; res;
+	
+	INICIO
+		Si ((dato3<dato1)o(dato3>dato2)) entonces
+			res = 1;
+		Sino
+			res = 0;
+		Finsi
+	FIN
+2.17-
+	El valor que se carga en "res" es 1.
+2.18-
+		.data
+dato1: 	.word 30
+dato2: 	.word 40
+dato3: 	.word -1
+res: 	.space 4
+		.text
+main: 	lw $t1,dato1($0) #cargar dato1 en $t1
+		lw $t2,dato2($0) #cargar dato2 en $t2
+		lw $t3,dato3($0) #cargar dato3 en $t3
+Si: 		blt $t3,$t1, sino #si $t3<$t1 ir entonces
+		bgt $t3,$t2, sino #si $t3>$t2 ir a sino
+entonces:	addi $t4,$0,1 #$t4=1
+		j finsi #ir a finsi
+sino: 	and $t4,$0,$0 #$t4=0
+finsi: 	sw $t4,res($0) #almacenar res
+
+2.19-
+2.20-
+	Almacena un 4 en "n". Representa la longitud de la cadena.
+2.21-
+		.text
+main: 	la $s0,caden1 #carga dir. caden1 en $s0
+		la $s1,caden2 #carga dir. caden2 en $s1
+		andi $t2,$t2, 0 #(n)$t2=0
+mientras: 
+		lb $t0,0($s0) #almacenar byte en $t0
+		lb $t1,0($s1) #almacenar byte en $t1
+		beq $t0,$0,finmientras #si $t0=0 saltar a finmientras
+		beq $t1,$0,finmientras #si $t1=0 saltar a finmientras
+		addi $t2,$t2, 1 #$t2=$t2+1
+		addi $s0,$s0, 1 #$s0=$s0+1
+		addi $s1,$s1, 1 #$s1=$s1+1
+		j mientras #saltar a mientras
+finmientras: 
+		sw $t2,n($0) #almacenar $t2 en n
+	
+2.22-
+2.23-
+	EL valor guardado en "res" es 41 (6+7+8+9+10+1).
+2.24-
+		.data
+v1:		.word 6,7,8,9,10,-1,34,23
+v2: 		.space 32
+		.text
+main: 	la $s1,v1 #$s1=dirección de v1
+		la $s2,v2 #$s2=dirección de v2
+		li $t0,0 #$t0=0
+		li $t1,7 #$t1=6
+para: 	bgt $t0,$t1,finpara #si $t0>$t1 saltar finpara
+		lw $t4,0($s1) #carga elemento vector en $t4
+		addi $t4,$t4, 1 #v2[i]=v1[i]+1
+		sw $t4,0($s2)
+		addi $s1,$s1, 4 #$s1=$s1+4
+		addi $s2,$s2, 4 #$s2=$s2+4
+		addi $t0,$t0, 1 #$t0=$t0+1
+		j para #saltar a bucle
+finpara:
+
+-----------------------------------------------------PROBLEMAS PROPUESTOS-----------------------------------------------------------
+4)
+		.data
+dato1:	.word 2
+dato2:	.word 10
+dato3:	.word 50
+dato4:	.word 70
+dato5:	.word 34
+res:		.space 4
+		.text
+main: 	lw $t1,dato1($0) #guardo dato1 en $t1
+		lw $t2,dato2($0) #guardo dato2 en $t2
+		lw $t3,dato3($0) #guardo dato3 en $t3
+		lw $t4,dato4($0) #guardo dato4 en $t4
+		lw $t5,dato5($0) #guardo dato5 en $t5
+		sge $s0,$t5,$t1 #$s0=1 si $t5>$t1
+		sle $s1,$t5,$t2 #$s0=1 si $t5<$t2
+		and $s0,$s0,$s1 #si se cumplen simultaneamente
+		sge $s1,$t5,$t3 #$s1=1 si $t5>$t3
+		sle $s2,$t5,$t4 #$s1=1 si $t5<$t4
+		and $s1,$s1,$s2 #si se cumplen simultaneamente
+		or $s0,$s0,$s1 #ambos intervalos
+		sw $s0,res($0) #guardo res
+5)
+		.data
+vector:	.word 0,-1,4,0,2,0,8,0
+n:		.word 8
+res:		.space 4
+		.text
+main: 	la $t0,vector($0) #$t0 es un puntero a vector
+		and $t1,$t1,$0 #$t1 = 0 (cant 0s)
+		and $s0,$s0,$0 #$s0 = 0 (i)
+		lw $s1,n($0) #$t2 = n
+for:		beq $s0,$s1,endfor #si i>n termina
+		lw $t2,0($t0)
+		addi $s0,$s0,1 #aumento i en 1
+		addi $t0,$t0,4 #aumento la posicion del puntero en 4
+		bnez $t2,for
+		addi $t1,$t1,1
+		j for
+endfor:	sw $t1,res($0)
+
+6)
+		.data
+vector:	.word 0,-1,4,0,2,5,8,0
+n:		.word 8
+rango1:	.word 3
+rango2: 	.word 9
+res:		.space 4
+		.text
+main: 	la $t0,vector($0) #$t0 es un puntero a vector
+		and $t1,$t1,$0 #$t1 = 0 (cant Rs)
+		lw $t8,rango1($0) #cargo rango1 en $t8
+		lw $t9,rango2($0) #cargo rango2 en $t9
+		and $s0,$s0,$0 #$s0 = 0 (i)
+		lw $s1,n($0) #$t2 = n
+for:		beq $s0,$s1,endfor #si i>n termina
+		lw $t2,0($t0)
+		addi $s0,$s0,1 #aumento i en 1
+		addi $t0,$t0,4 #aumento la posicion del puntero en 4
+		blt $t2,$t8,for #salto si $t2 < $t8
+		bgt $t2,$t9,for #salto si $t2 > $t9
+		addi $t1,$t1,1 #si pasa ambas condiciones cuento+1
+		j for
+endfor:	sw $t1,res($0)
+	
+7)
+		.data
+cadena:	.asciiz "hola mundo"
+		.align 2
+char:	.ascii "o"
+		.align 2
+res:		.space 4
+		.text
+main: 	la $t0,cadena($0) #$t0 es un puntero a vector
+		lw $t1,char($0) #cargo char en $t1
+		and $s0,$s0,$0 #$s0 = 0 (cant char)
+for:		lb $s1,0($t0) #cargo cadena[i] en $s1
+		beq $s1,$0,endfor #si cadena[i] = 0 termina
+		addi $t0,$t0,1 #aumento la posicion del puntero en 1
+		bne $s1,$t1,for #salto si $s1 != $t1
+		addi $s0,$s0,1 #si pasa la condición cuento+1
+		j for
+endfor:	sw $s0,res($0)
+
+-------------------------------------------------------------FIN----------------------------------------------------------------
